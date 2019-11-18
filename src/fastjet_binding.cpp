@@ -3,8 +3,6 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-#include <sstream>
-
 #include <fastjet/ClusterSequence.hh>
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
@@ -253,16 +251,14 @@ PYBIND11_MODULE(fastjet_binding, m) {
     .def_property_readonly("has_valid_cs", &PseudoJet::has_valid_cluster_sequence, "true if this PseudoJet has an associated and still valid(ated) ClusterSequence.")
     .def("has_partner", &PseudoJet::has_partner, "partner"_a, "Check if it has been recombined with another PseudoJet in which case, return its partner through the argument. Otherwise, 'partner' is set to 0.")
     .def("has_child", &PseudoJet::has_child, "child"_a, "Check if it has been recombined with another PseudoJet in which case, return its child through the argument. Otherwise, 'child' is set to 0.")
-    // TODO: Think about finish this binding!
-    //.def("has_parents", &PseudoJet::has_parents, "parent_1"_a, "parent_2"_a, "Check if it is the product of a recombination, in which case return the 2 parents through the 'parent1' and 'parent2' arguments. Otherwise, set these to 0.")
-    /*.def("parents", [](PseudoJet & jet) {
+    .def("parents", [](PseudoJet & jet) {
         PseudoJet parent1, parent2;
         jet.has_parents(parent1, parent2);
-        if (parent1.pt() == 0 && parent2.pt() == 0) {
-          return py::cast<py::none>(Py_None);
-        }
+        // We'd like to return None if the parents aren't available. However, we can't handle this nicely without c++17.
+        // Instead, we just return both the parents. The user has to check...
+        //return (parent1.pt() != 0 || parent2.pt() != 0) ? std::optional<std::tuple<PseudoJet, PseudoJet>>{std::make_tuple(parent1, parent2)} : py::cast<py::none>(Py_None);
         return std::make_tuple(parent1, parent2);
-        }, "Return the parents of the PseudoJet if it is the product of a recombination.");*/
+      }, "Return the parents of the PseudoJet if it is the product of a recombination. If not, returns two empty PseudoJets.")
     .def("contains", &PseudoJet::contains, "other"_a, " Check if the current PseudoJet contains the one passed as argument.")
     .def("is_inside", &PseudoJet::is_inside, "other"_a, "Check if the current PseudoJet is contained the one passed as argument.")
     .def("__repr__", [](PseudoJet & jet){
@@ -318,4 +314,7 @@ PYBIND11_MODULE(fastjet_binding, m) {
       )pbdoc");
 
   // TODO: fastjet-contribu bindings. Look at a substructure analysis.
+  // Constituent subtractor
+  // Recursive tools
+  // Lund plane
 }
