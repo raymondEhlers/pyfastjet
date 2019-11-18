@@ -1,4 +1,5 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
@@ -60,6 +61,40 @@ bool operator==(const IterableWrapper<T> & it, const IterableWrapperSentinel &) 
 bool operator==(const IterableWrapper<T> & it, const IterableWrapperSentinel &) {
   return it == it.end();
 }*/
+
+/**
+ * Create PsuedoJet objects from a numpy array of px, py, pz, E. Axis 0 is the number of particles,
+ * while axis 1 must be the 4 parameters.
+ *
+ * @param[jets] Numpy input array.
+ * @returns Vector of PseudoJets.
+ */
+std::vector<fastjet::PseudoJet> construct_jets_from_numpy(const py::array_t<double> & jets)
+{
+  // Retrieve array and relevant information
+  py::buffer_info info = jets.request();
+  auto inputJets = static_cast<double *>(info.ptr);
+  std::vector<fastjet::PseudoJet> outputJets;
+  // This defines our numpy array shape.
+  int nParticles = info.shape[0];
+  int nParams = info.shape[1];
+  //std::cout << "nParams: " << nParams << ", nParticles: " << nParticles << "\n";
+
+  // Validation.
+  if (nParams != 4) {
+    throw std::runtime_error("Number of params is not correct. Should be four per particle.");
+  }
+  // Convert the arrays
+  for (size_t i = 0; i < nParticles; ++i) {
+    /*std::cout << "i " << i << " inputs: " << inputJets[i * nParams + 0] << " " << inputJets[i * nParams + 1]
+      << " " << inputJets[i * nParams + 2] << " " <<  inputJets[i * nParams + 3] << "\n";*/
+    outputJets.push_back(fastjet::PseudoJet(
+      inputJets[i * nParams + 0], inputJets[i * nParams + 1],
+      inputJets[i * nParams + 2], inputJets[i * nParams + 3]));
+  }
+
+  return outputJets;
+}
 
 PYBIND11_MODULE(fastjet_binding, m) {
   using namespace fastjet;
@@ -247,8 +282,8 @@ PYBIND11_MODULE(fastjet_binding, m) {
 
   py::class_<ClusterSequence>(m, "ClusterSequence")
     .def(py::init<const std::vector<PseudoJet> &, const JetDefinition &, const bool &>(), "pseudojets"_a, "jet_definition"_a, "write_out_combinations"_a = false, "Create a ClusterSequence, starting from the supplied set of PseudoJets and clustering them with jet definition specified by jet_definition (which also specifies the clustering strategy)")
-    // TODO; numpy
-    //.def(py::init<const std::vector<double> &, const JetDefinition &, const bool &>(), "pseudojets"_a, "jet_definition"_a, "write_out_combinations"_a = false, "Create a ClusterSequence, starting from the supplied set of PseudoJets and clustering them with jet definition specified by jet_definition (which also specifies the clustering strategy)");
+    // numpy constructor.
+    .def(py::init([](const py::array_t<double> & pseudojets, const JetDefinition & jetDef, const bool & writeOutCombination){ auto jets = construct_jets_from_numpy(pseudojets); return ClusterSequence(jets, jetDef, writeOutCombination); }), "pseudojets"_a, "jet_definition"_a, "write_out_combinations"_a = false, "Create a ClusterSequence, starting from the supplied set of PseudoJets and clustering them with jet definition specified by jet_definition (which also specifies the clustering strategy)")
     .def("inclusive_jets", &ClusterSequence::inclusive_jets, "pt_min"_a = 0., "Return a vector of all jets (in the sense of the inclusive algorithm) with pt >= ptmin. Time taken should be of the order of the number of jets returned.")
     .def("__getitem__", [](const ClusterSequence &cs, size_t i) {
       auto inclusive_jets = cs.inclusive_jets();
@@ -281,4 +316,6 @@ PYBIND11_MODULE(fastjet_binding, m) {
         Returns:
           List of inclusive jets.
       )pbdoc");
+
+  // TODO: fastjet-contribu bindings. Look at a substructure analysis.
 }
