@@ -3,6 +3,7 @@ pyfastjet.cpython-37m-darwin.so
 .DS_Store
 
 __pycache__/
+.mypy_cache/
 # Build artifacts
 pyfastjet.egg-info/
 build/
