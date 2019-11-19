@@ -32,7 +32,7 @@ black = "^19.10b0"
 
 [tool.isort]
 known_standard_library = ["setuptools"]
-known_third_party = ["numpy", "pytest", "setuptools"]
+known_third_party = ["numpy", "pytest"]
 known_first_party = []
 line_length = 120
 # Meaning a grouped grid of imports
