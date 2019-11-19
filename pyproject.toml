@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "fastjet"
+version = "0.1.0"
+description = "Fastjet python bindings"
+authors = [
+    "Raymond Ehlers <raymond.ehlers@cern.ch>",
+]
+license = "BSD-3-Clause"
+build = "build.py"
+# TODO: Include the appropriate files here...
+include = [
+    "CMakeLists.txt", "cmake/FindFASTJET.cmake",
+    # Include everything in the pybind11 folder.
+    "pybind11/**/*"
+    #"pybind11/*", "pybind11/include/*", "pybind11/pybind11/*", "pybind11/tools/*",
+    #"pybind11/include/pybind11/*", "pybind11/include/pybind11/detail/*",
+]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+numpy = "^1.17.4"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2.4"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
