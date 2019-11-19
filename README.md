@@ -2,6 +2,8 @@
 
 Python bindings for fastjet. fastjet-contrib is not yet supported, but could be added depending on demand.
 
+**NOTE: These are still in development / are experimental!**
+
 ## Installation
 
 Prerequisites:
