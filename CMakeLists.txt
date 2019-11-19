@@ -21,7 +21,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 #cmake_policy(SET CMP0074 NEW)
 
 # Require fastjet
-find_package(Boost REQUIRED)
+#find_package(Boost REQUIRED)
 find_package(FASTJET REQUIRED)
 
 message(STATUS "Fastjet libs: ${FASTJET_LIBS}, dirs: ${FASTJET_LIBS_DIR}")
@@ -31,5 +31,5 @@ link_directories(${FASTJET_LIBS_DIR} ${BOOST_LIBS_DIR})
 add_definitions(${FASTJET_DEFINITIONS})
 
 add_subdirectory(pybind11)
-pybind11_add_module(fastjet_binding src/fastjet_binding.cpp)
+pybind11_add_module(fastjet_binding fastjet/fastjet_binding.cpp)
 target_link_libraries(fastjet_binding PRIVATE ${FASTJET_LIBS})
