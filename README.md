@@ -1,5 +1,7 @@
 # Python Fastjet Bindings
 
+Python bindings for fastjet. fastjet-contrib is not yet supported, but could be added depending on demand.
+
 ## Installation
 
 Prerequisites:
@@ -25,9 +27,35 @@ Done. If you need a virtualenv with the package, this can be useful:
 alias poetryShell='source "$(dirname $(poetry run which python))/activate"'
 ```
 
-## Quick Start
+## Usage
 
-See the tests.
+By way of an example from the fastjet quick start:
+
+```python
+import pyfastjet as fj
+
+# Create the PseudoJets
+# an event with three particles:   px    py  pz      E
+particles = []
+particles.append(PseudoJet( 99.0,  0.1,  0, 100.0))
+particles.append(PseudoJet(  4.0, -0.1,  0,   5.0))
+particles.append(PseudoJet(-99.0,    0,  0,  99.0))
+
+# choose a jet definition
+R = 0.7
+jet_def = fj.JetDefinition(fj.JetAlgorithm.antikt_algorithm, R)
+
+# run the clustering, extract the jets
+cs = fj.ClusterSequence(particles, jet_def)
+jets = fj.sorted_by_pt(cs.inclusive_jets())
+
+for jet in cs:
+    print(f"jet: {jet}")
+    for j, constituent in enumerate(jet.constituents):
+        print(f"    constituent {j}: {constituent}")
+```
+
+See the tests for more functionality.
 
 # Alternatives
 
