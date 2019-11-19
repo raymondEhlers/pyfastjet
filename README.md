@@ -38,6 +38,6 @@ there are many other excellent binding options:
   fastjet, which isn't yet deployed for ALICE.
 - [pyjet](https://github.com/scikit-hep/pyjet): It currently (Nov 2019) doesn't have fastjet-contrib bindings.
   They possible could have been added, but it didn't appear as straightforward as I would have liked.
-- [hepp](https://github.com/matplo/heppy): I was unable to get this setup :-(
+- [heppy](https://github.com/matplo/heppy): I was unable to get this setup :-(
 
 
