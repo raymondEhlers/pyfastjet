@@ -13,6 +13,7 @@ from typing import Any, Dict
 from numpy import get_include as get_numpy_include
 from setuptools.command.build_ext import build_ext
 from setuptools.extension import Extension
+from setuptools import find_packages
 
 
 class CMakeExtension(Extension):
@@ -86,12 +87,11 @@ class ExtensionBuilder(build_ext):
 
 def build(setup_kwargs: Dict[str, Any]) -> None:
     #cmake_modules = [CMakeExtension("project.package.pybind11_extension", sourcedir="project/package/pybind11_extension")]
-    cmake_modules = [CMakeExtension("fastjet")]
+    cmake_modules = [CMakeExtension("pyfastjet")]
     ext_modules = cmake_modules
-    setup_kwargs.update(
-        {
-            "ext_modules": ext_modules,
-            "cmdclass": dict(build_ext=ExtensionBuilder),
-            "zip_safe": False,
-        }
-    )
+    setup_kwargs.update({
+        "packages": find_packages(),
+        "ext_modules": ext_modules,
+        "cmdclass": dict(build_ext=ExtensionBuilder),
+        "zip_safe": False,
+    })

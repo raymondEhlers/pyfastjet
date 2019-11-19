@@ -1,7 +1,7 @@
 # BSD 3-Clause License; see https://github.com/jpivarski/awkward-1.0/blob/master/LICENSE
 
 cmake_minimum_required(VERSION 2.8.12.2)
-project(fastjet_binding)
+project(pyfastjet)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -31,5 +31,7 @@ link_directories(${FASTJET_LIBS_DIR} ${BOOST_LIBS_DIR})
 add_definitions(${FASTJET_DEFINITIONS})
 
 add_subdirectory(pybind11)
-pybind11_add_module(fastjet_binding fastjet/fastjet_binding.cpp)
-target_link_libraries(fastjet_binding PRIVATE ${FASTJET_LIBS})
+pybind11_add_module(pyfastjet pyfastjet/binding.cpp)
+target_link_libraries(pyfastjet PRIVATE ${FASTJET_LIBS})
+# For adding this as a submodule to the package
+#set_target_properties(pyfastjet PROPERTIES OUTPUT_NAME pyfastjet/binding)

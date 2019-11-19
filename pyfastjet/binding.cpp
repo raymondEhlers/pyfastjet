@@ -94,7 +94,7 @@ std::vector<fastjet::PseudoJet> construct_jets_from_numpy(const py::array_t<doub
   return outputJets;
 }
 
-PYBIND11_MODULE(fastjet_binding, m) {
+PYBIND11_MODULE(pyfastjet, m) {
   using namespace fastjet;
   /// Jet algorithm definitions
   py::enum_<JetAlgorithm>(m, "JetAlgorithm", py::arithmetic(), "Jet algorithms")
