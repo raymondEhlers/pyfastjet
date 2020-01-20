@@ -55,6 +55,10 @@ def test_fastjet(list_type: str) -> None:
     cs = fj.ClusterSequence(particles, jet_def)
     jets = fj.sorted_by_pt(cs.inclusive_jets())
 
+    # Test direct numpy access
+    pt_values = cs.numpy()
+    print(f"pt_values: type: {type(pt_values)}, values: {pt_values}")
+
     # Expected jets
     expected_jets = [
         fj.PseudoJet(103.0, 0.0, 0.0, 105.0),

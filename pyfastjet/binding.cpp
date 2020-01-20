@@ -316,6 +316,31 @@ PYBIND11_MODULE(pyfastjet, m) {
           min_pt: Minimum jet pt to include. Default: 0.
         Returns:
           List of inclusive jets.
+      )pbdoc")
+    .def("numpy",
+      [](const ClusterSequence &cs, double min_pt = 0) {
+        auto jets = cs.inclusive_jets(min_pt);
+        // Don't specify the size if using push_back.
+        std::vector<double> pt, eta, phi, m;
+        for (const auto & jet : jets) {
+          pt.push_back(jet.pt());
+          eta.push_back(jet.eta());
+          phi.push_back(jet.phi());
+          m.push_back(jet.m());
+        }
+        return std::make_tuple(
+            py::array(py::cast(pt)),
+            py::array(py::cast(eta)),
+            py::array(py::cast(phi)),
+            py::array(py::cast(m))
+          );
+      }, "min_pt"_a = 0, R"pbdoc(
+        Retrieves the inclusive jets and converts them to numpy arrays.
+
+        Args:
+          min_pt: Minimum jet pt to include. Default: 0.
+        Returns:
+          pt, eta, phi, m of inclusive jets.
       )pbdoc");
 
   // TODO: fastjet-contribu bindings. Look at a substructure analysis.
