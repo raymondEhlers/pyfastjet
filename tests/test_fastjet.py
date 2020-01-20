@@ -6,15 +6,16 @@
 """
 
 import pyfastjet as fj
+import pandas as pd
 import numpy as np
 from typing import List
 
 import pytest
 
-@pytest.mark.parametrize("use_numpy", [
-    False, True
-], ids = ["PseudoJets", "Numpy arrays"])
-def test_fastjet(use_numpy: bool) -> None:
+@pytest.mark.parametrize("list_type", [
+    "list", "numpy", "pandas"
+], ids = ["PseudoJets", "Numpy arrays", "Pandas DataFrame"])
+def test_fastjet(list_type: str) -> None:
     parts: List[List[float]] = []
     # an event with three particles:   px    py  pz      E
     parts.append([ 99.0,  0.1,  0, 100.0])
@@ -27,8 +28,21 @@ def test_fastjet(use_numpy: bool) -> None:
     particles_numpy = np.array(parts)
     print(f"shape: {particles_numpy.shape}")
     # Select the test case.
-    if use_numpy:
+    if list_type == "numpy":
         particles = particles_numpy
+    elif list_type == "pandas":
+        df_particles = pd.DataFrame(parts, columns = ["px", "py", "pz", "E"])
+        # Ensure that pz is treated properly.
+        df_particles["pz"] = df_particles["pz"].astype(np.float64)
+        #print(f"df_particles: {df_particles}")
+        #print(f"df dtypes: {df_particles.dtypes}")
+        # Must return as a numpy array.
+        # NOTE: Do not need to call `np.asarray(...)` or `np.ascontiguousarray(...)` here.
+        particles = df_particles.to_numpy()
+        #print(f"dtype of particles converted from df: {particles.dtype}")
+        #print(f"shape of particles converted from df: {particles.shape}")
+        # Sanity check.
+        np.testing.assert_allclose(particles, particles_numpy)
     else:
         particles = particles_pseudojets
     print(f"particles: {particles}, particles_numpy: {particles_numpy}, type: {type(particles_numpy)}")

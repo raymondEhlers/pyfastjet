@@ -64,14 +64,19 @@ bool operator==(const IterableWrapper<T> & it, const IterableWrapperSentinel &) 
  * Create PsuedoJet objects from a numpy array of px, py, pz, E. Axis 0 is the number of particles,
  * while axis 1 must be the 4 parameters.
  *
+ * Note: The aray is required to be c-style, which ensures that it works with other packages. For example,
+ *       pandas caused a problem in some cases without that argument.
+ *
  * @param[jets] Numpy input array.
  * @returns Vector of PseudoJets.
  */
-std::vector<fastjet::PseudoJet> construct_jets_from_numpy(const py::array_t<double> & jets)
+std::vector<fastjet::PseudoJet> construct_jets_from_numpy(const py::array_t<double, py::array::c_style | py::array::forcecast> & jets)
 {
   // Retrieve array and relevant information
   py::buffer_info info = jets.request();
-  auto inputJets = static_cast<double *>(info.ptr);
+  // I'm not sure which one of these is better.
+  //auto inputJets = static_cast<double *>(info.ptr);
+  auto inputJets = jets.data();
   std::vector<fastjet::PseudoJet> outputJets;
   // This defines our numpy array shape.
   int nParticles = info.shape[0];
@@ -84,7 +89,7 @@ std::vector<fastjet::PseudoJet> construct_jets_from_numpy(const py::array_t<doub
   }
   // Convert the arrays
   for (size_t i = 0; i < nParticles; ++i) {
-    /*std::cout << "i " << i << " inputs: " << inputJets[i * nParams + 0] << " " << inputJets[i * nParams + 1]
+    /*std::cout << "i: " << i << " inputs: " << inputJets[i * nParams + 0] << " " << inputJets[i * nParams + 1]
       << " " << inputJets[i * nParams + 2] << " " <<  inputJets[i * nParams + 3] << "\n";*/
     outputJets.push_back(fastjet::PseudoJet(
       inputJets[i * nParams + 0], inputJets[i * nParams + 1],

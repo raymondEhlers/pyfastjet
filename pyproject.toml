@@ -29,6 +29,7 @@ yamllint = "^1.19.0"
 pybind11-stubgen = "^0.2.1"
 pre-commit = "^1.20.0"
 black = "^19.10b0"
+pandas = "^0.25.3"
 
 [tool.isort]
 known_standard_library = ["setuptools"]
