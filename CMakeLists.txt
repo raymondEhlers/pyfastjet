@@ -1,6 +1,6 @@
 # BSD 3-Clause License; see https://github.com/jpivarski/awkward-1.0/blob/master/LICENSE
 
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.15)
 project(pyfastjet)
 
 set(CMAKE_CXX_STANDARD 11)

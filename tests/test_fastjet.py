@@ -56,7 +56,7 @@ def test_fastjet(list_type: str) -> None:
     jets = fj.sorted_by_pt(cs.inclusive_jets())
 
     # Test direct numpy access
-    pt_values = cs.numpy()
+    pt_values = cs.to_numpy()
     print(f"pt_values: type: {type(pt_values)}, values: {pt_values}")
 
     # Expected jets

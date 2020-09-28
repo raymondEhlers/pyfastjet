@@ -4,8 +4,11 @@
 #include <pybind11/stl.h>
 
 #include <fastjet/ClusterSequence.hh>
+#include <fastjet/ClusterSequenceArea.hh>
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
+#include <fastjet/AreaDefinition.hh>
+#include <fastjet/GhostedAreaSpec.hh>
 
 namespace py = pybind11;
 // Shorthand for literals
@@ -317,7 +320,7 @@ PYBIND11_MODULE(pyfastjet, m) {
         Returns:
           List of inclusive jets.
       )pbdoc")
-    .def("numpy",
+    .def("to_numpy",
       [](const ClusterSequence &cs, double min_pt = 0) {
         auto jets = cs.inclusive_jets(min_pt);
         // Don't specify the size if using push_back.
@@ -342,6 +345,39 @@ PYBIND11_MODULE(pyfastjet, m) {
         Returns:
           pt, eta, phi, m of inclusive jets.
       )pbdoc");
+
+  py::class_<ClusterSequenceArea, ClusterSequence>(m, "ClusterSequenceArea")
+    .def(py::init<const std::vector<PseudoJet> &, const JetDefinition &, const AreaDefinition &>(), "pseudojets"_a, "jet_definition"_a, "area_definition"_a, "Create a ClusterSequenceArea, starting from the supplied set of PseudoJets and clustering them with jet definition specified by jet_definition (which also specifies the clustering strategy)")
+    .def(py::init<const std::vector<PseudoJet> &, const JetDefinition &, const GhostedAreaSpec &>(), "pseudojets"_a, "jet_definition"_a, "ghost_spec"_a, "Create a ClusterSequenceArea, starting from the supplied set of PseudoJets and clustering them with jet definition specified by jet_definition (which also specifies the clustering strategy)");
+
+  py::enum_<AreaType>(m, "AreaType", py::arithmetic(), "Jet area definitions")
+    .value("invalid_area", AreaType::invalid_area, "Invalid jet area")
+    .value("active_area", AreaType::active_area, "Active jet area")
+    .value("active_area_explicit_ghosts", AreaType::active_area_explicit_ghosts, "Active jet area with explicit ghosts")
+    .value("one_ghost_passive_area", AreaType::one_ghost_passive_area, "One ghost with passive area")
+    .value("passive_area", AreaType::passive_area, "Passive area")
+    .value("voronoi_area", AreaType::voronoi_area, "Voronoi area")
+    .export_values();
+
+  py::class_<GhostedAreaSpec>(m, "GhostedAreaSpec", "Ghost area specification")
+    .def(py::init<double, int, double, double, double, double>(),
+        "max_rapidity"_a,
+        "repeat_in"_a = gas::def_repeat,
+        "ghost_area_in"_a = gas::def_ghost_area,
+        "grid_scatter_in"_a = gas::def_grid_scatter,
+        "pt_scatter_in"_a = gas::def_pt_scatter,
+        "mean_ghost_pt_in"_a = gas::def_mean_ghost_pt)
+    .def_property("max_rapidity", &GhostedAreaSpec::ghost_maxrap, &GhostedAreaSpec::set_ghost_maxrap, "Max ghost rapidity.")
+    .def_property("ghost_area", &GhostedAreaSpec::ghost_area, &GhostedAreaSpec::set_ghost_area, "Ghost area.")
+    .def_property("grid_scatter", &GhostedAreaSpec::grid_scatter, &GhostedAreaSpec::set_grid_scatter, "Grid scatter.")
+    .def_property("pt_scatter", &GhostedAreaSpec::pt_scatter, &GhostedAreaSpec::set_pt_scatter, "pt scatter.")
+    .def_property("mean_ghost_pt", &GhostedAreaSpec::mean_ghost_pt, &GhostedAreaSpec::set_mean_ghost_pt, "Mean ghost pt.");
+
+  py::class_<AreaDefinition>(m, "AreaDefinition", "Area definition")
+    .def(py::init<AreaType, const GhostedAreaSpec &>(), "area_type"_a, "ghost_spec"_a)
+    .def(py::init<AreaType>(), "area_type"_a)
+    .def_property_readonly("area_type", &AreaDefinition::area_type)
+    .def_property_readonly("ghost_spec", (const GhostedAreaSpec & (AreaDefinition::*)() const) &AreaDefinition::ghost_spec);
 
   // TODO: fastjet-contribu bindings. Look at a substructure analysis.
   // Constituent subtractor
