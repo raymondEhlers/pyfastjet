@@ -1,11 +1,14 @@
 .env
-pyfastjet.cpython-37m-darwin.so
 .DS_Store
 
+# Python
 __pycache__/
 .mypy_cache/
+pip-wheel-metadata/
 # Build artifacts
 pyfastjet.egg-info/
 build/
 dist/
 
+# Built libraries
+*.so
