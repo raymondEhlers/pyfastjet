@@ -10,9 +10,17 @@
 #include <fastjet/AreaDefinition.hh>
 #include <fastjet/GhostedAreaSpec.hh>
 
+#include <awkward/array/NumpyArray.h>
+#include <awkward/builder/ArrayBuilder.h>
+#include <awkward/builder/ArrayBuilderOptions.h>
+#include <awkward/kernel-dispatch.h>
+
 namespace py = pybind11;
 // Shorthand for literals
 using namespace pybind11::literals;
+
+// Convenience for awkward.
+namespace ak = awkward;
 
 template<typename T>
 class IterableWrapper {
@@ -64,7 +72,7 @@ bool operator==(const IterableWrapper<T> & it, const IterableWrapperSentinel &) 
 }*/
 
 /**
- * Create PsuedoJet objects from a numpy array of px, py, pz, E. Axis 0 is the number of particles,
+ * Create PseudoJet objects from a numpy array of px, py, pz, E. Axis 0 is the number of particles,
  * while axis 1 must be the 4 parameters.
  *
  * Note: The aray is required to be c-style, which ensures that it works with other packages. For example,
@@ -73,7 +81,7 @@ bool operator==(const IterableWrapper<T> & it, const IterableWrapperSentinel &) 
  * @param[jets] Numpy input array.
  * @returns Vector of PseudoJets.
  */
-std::vector<fastjet::PseudoJet> construct_jets_from_numpy(const py::array_t<double, py::array::c_style | py::array::forcecast> & jets)
+std::vector<fastjet::PseudoJet> constructPseudojetsFromNumpy(const py::array_t<double, py::array::c_style | py::array::forcecast> & jets)
 {
   // Retrieve array and relevant information
   py::buffer_info info = jets.request();
@@ -101,6 +109,70 @@ std::vector<fastjet::PseudoJet> construct_jets_from_numpy(const py::array_t<doub
 
   return outputJets;
 }
+
+struct JetFinderSettings {
+  fastjet::JetDefinition _jetDefinition;
+  fastjet::AreaDefinition _areaDefinition;
+
+  const fastjet::JetDefinition JetDefinition() { return _jetDefinition; }
+  void SetJetDefinition(fastjet::JetDefinition & def) { _jetDefinition = def; }
+  const fastjet::AreaDefinition AreaDefinition() { return _areaDefinition; }
+  void SetAreaDefinition(fastjet::AreaDefinition & area) { _areaDefinition = area; }
+};
+
+template <typename T>
+std::vector<fastjet::PseudoJet> getPseudoJetsFromParticles(const std::shared_ptr<ak::Content>& particles)
+{
+  std::vector<std::pair<int64_t, T*>> arrays;
+  // NOTE: Ordering is important here! It needs to match the PseudoJet constructor.
+  std::vector<std::string> columnNames = { "px", "py", "pz", "E" };
+  for (const auto& name : columnNames) {
+    auto npArray = std::dynamic_pointer_cast<ak::NumpyArray>(particles->getitem_field(name));
+    arrays.emplace_back(std::make_pair(npArray->length(), reinterpret_cast<T*>(npArray->data())));
+  }
+
+  if (arrays.size() != 4) {
+    throw std::runtime_error("Could not find the columns in the passed array.");
+  }
+
+  // Explicitly expecting 1D arrays.
+  std::vector<fastjet::PseudoJet> pseudoJets;
+  for (int64_t i = 0; i < arrays[0].first; i++) {
+    pseudoJets.emplace_back(
+     fastjet::PseudoJet(arrays[0].second[i], arrays[1].second[i], arrays[2].second[i], arrays[3].second[i]));
+  }
+
+  return pseudoJets;
+}
+
+std::shared_ptr<ak::Content> findJets(const std::shared_ptr<ak::Content> & arr, JetFinderSettings settings)
+{
+  ak::ArrayBuilder builder(ak::ArrayBuilderOptions(1024, 2.0));
+  for (int64_t i = 0; i < arr->length(); i++) {
+    auto particles = arr->getitem_at(i);
+    auto pseudoJets = getPseudoJetsFromParticles<double>(particles);
+    std::cout << pseudoJets.size() << "\n";
+
+    // Perform jet finding. For now, we just pretend that the pseudoJets are the jets...
+    builder.beginlist();
+    /*for (auto jet : jets) {
+      builder.beginrecord_fast("LorentzVector");
+      builder.field_fast("t");
+      builder.real(jet.E());
+      builder.field_fast("x");
+      builder.real(jet.px());
+      builder.field_fast("y");
+      builder.real(jet.py());
+      builder.field_fast("z");
+      builder.real(jet.pz());
+      builder.endrecord();
+    }*/
+    builder.endlist();
+  }
+
+  return builder.snapshot();
+}
+
 
 PYBIND11_MODULE(_src, m) {
   using namespace fastjet;
@@ -165,7 +237,14 @@ PYBIND11_MODULE(_src, m) {
     .def_property("extra_parameter", &JetDefinition::extra_param, &JetDefinition::set_extra_param, "A general purpose extra parameter, whose meaning depends on the algorithm, and may often be unused.")
     .def_property_readonly("strategy", &JetDefinition::strategy, "Jet finding strategy")
     .def("description", [](JetDefinition & jet, const bool include_recombiner) { if (include_recombiner == true) { return jet.description(); } return jet.description_no_recombiner(); }, "include_recombiner"_a = true, "A textual description of the current jet definition. The recombiner description is included by default.")
-    .def_static("algorithm_description", &JetDefinition::algorithm_description, "jet_algorithm"_a, "A short textual description of the algorithm jet_algorithm");
+    .def_static("algorithm_description", &JetDefinition::algorithm_description, "jet_algorithm"_a, "A short textual description of the algorithm jet_algorithm")
+    .def("__repr__", [](JetDefinition& jetDef){
+        std::stringstream s;
+        //s << "<JetDefinition jet_algorithm=" << jetDef.jet_algorithm() << ", R=" << jetDef.R() << " at " << &jetDef << ">";
+        s << "<JetDefinition R=" << jetDef.R() << " at " << &jetDef << ">";
+        return s.str();
+      })
+    ;
 
   py::class_<PseudoJet>(m, "PseudoJet")
     .def(py::init<double, double, double, double>(), "px"_a, "py"_a, "pz"_a, "E"_a)
@@ -287,7 +366,7 @@ PYBIND11_MODULE(_src, m) {
   py::class_<ClusterSequence>(m, "ClusterSequence")
     .def(py::init<const std::vector<PseudoJet> &, const JetDefinition &, const bool &>(), "pseudojets"_a, "jet_definition"_a, "write_out_combinations"_a = false, "Create a ClusterSequence, starting from the supplied set of PseudoJets and clustering them with jet definition specified by jet_definition (which also specifies the clustering strategy)")
     // numpy constructor.
-    .def(py::init([](const py::array_t<double> & pseudojets, const JetDefinition & jetDef, const bool & writeOutCombination){ auto jets = construct_jets_from_numpy(pseudojets); return ClusterSequence(jets, jetDef, writeOutCombination); }), "pseudojets"_a, "jet_definition"_a, "write_out_combinations"_a = false, "Create a ClusterSequence, starting from the supplied set of PseudoJets and clustering them with jet definition specified by jet_definition (which also specifies the clustering strategy)")
+    .def(py::init([](const py::array_t<double> & pseudojets, const JetDefinition & jetDef, const bool & writeOutCombination){ auto convertedPseudojets = constructPseudojetsFromNumpy(pseudojets); return ClusterSequence(convertedPseudojets, jetDef, writeOutCombination); }), "pseudojets"_a, "jet_definition"_a, "write_out_combinations"_a = false, "Create a ClusterSequence, starting from the supplied set of PseudoJets and clustering them with jet definition specified by jet_definition (which also specifies the clustering strategy)")
     .def("inclusive_jets", &ClusterSequence::inclusive_jets, "pt_min"_a = 0., "Return a vector of all jets (in the sense of the inclusive algorithm) with pt >= ptmin. Time taken should be of the order of the number of jets returned.")
     .def("__getitem__", [](const ClusterSequence &cs, size_t i) {
       auto inclusive_jets = cs.inclusive_jets();
@@ -377,7 +456,29 @@ PYBIND11_MODULE(_src, m) {
     .def(py::init<AreaType, const GhostedAreaSpec &>(), "area_type"_a, "ghost_spec"_a)
     .def(py::init<AreaType>(), "area_type"_a)
     .def_property_readonly("area_type", &AreaDefinition::area_type)
-    .def_property_readonly("ghost_spec", (const GhostedAreaSpec & (AreaDefinition::*)() const) &AreaDefinition::ghost_spec);
+    .def_property_readonly("ghost_spec", (const GhostedAreaSpec & (AreaDefinition::*)() const) &AreaDefinition::ghost_spec)
+    .def("__repr__", [](AreaDefinition& areaDef){
+        std::stringstream s;
+        //s << "<AreaDefinition area_type=" << areaDef.area_type() << ", ghost_spec=" << areaDef.ghost_spec() << " at " << &areaDef << ">";
+        s << "<AreaDefinition at " << &areaDef << ">";
+        return s.str();
+      })
+    ;
+
+  // Awkward array
+  py::class_<JetFinderSettings>(m, "JetFinderSettings", "Encompasses jet finder settings")
+    .def(py::init<const JetDefinition, const AreaDefinition>(), "jet_definition"_a, "area_definition"_a)
+    .def_property("jet_definition", &JetFinderSettings::JetDefinition, &JetFinderSettings::SetJetDefinition)
+    .def_property("area_definition", &JetFinderSettings::AreaDefinition, &JetFinderSettings::SetAreaDefinition)
+    .def("__repr__", [](JetFinderSettings & settings){
+        std::stringstream s;
+        //s << "<JetFinderSettings jet_definition R=" << settings.JetDefinition() << ", area_definition=" << settings.AreaDefinition()  << " at " << &settings << ">";
+        s << "<JetFinderSettings jet_def R=" << settings.JetDefinition().R() << " at " << &settings << ">";
+        return s.str();
+      })
+    ;
+
+  m.def("find_jets", &findJets, "events"_a, "settings"_a, "Find jets for the given events according to the provided settings.");
 
   // TODO: fastjet-contribu bindings. Look at a substructure analysis.
   // Constituent subtractor
