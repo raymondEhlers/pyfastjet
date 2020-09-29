@@ -31,7 +31,7 @@ link_directories(${FASTJET_LIBS_DIR} ${BOOST_LIBS_DIR})
 add_definitions(${FASTJET_DEFINITIONS})
 
 add_subdirectory(pybind11)
-pybind11_add_module(pyfastjet pyfastjet/binding.cpp)
-target_link_libraries(pyfastjet PRIVATE ${FASTJET_LIBS})
+pybind11_add_module(_src pyfastjet/src/binding.cpp)
+target_link_libraries(_src PRIVATE ${FASTJET_LIBS})
 # For adding this as a submodule to the package
 #set_target_properties(pyfastjet PROPERTIES OUTPUT_NAME pyfastjet/binding)

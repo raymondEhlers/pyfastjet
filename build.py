@@ -87,7 +87,8 @@ class ExtensionBuilder(build_ext):
 
 def build(setup_kwargs: Dict[str, Any]) -> None:
     #cmake_modules = [CMakeExtension("project.package.pybind11_extension", sourcedir="project/package/pybind11_extension")]
-    cmake_modules = [CMakeExtension("pyfastjet")]
+    # 29 September 2020: Apparently setting the sourcedir, even if it's in a subdirectory, will breaks things. So don't set it!
+    cmake_modules = [CMakeExtension("pyfastjet._src")]
     ext_modules = cmake_modules
     setup_kwargs.update({
         "packages": find_packages(),
