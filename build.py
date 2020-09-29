@@ -39,7 +39,7 @@ class ExtensionBuilder(build_ext):
         cmake_extensions = [x for x in self.extensions if isinstance(x, CMakeExtension)]
         if len(cmake_extensions) > 0:
             try:
-                out = subprocess.check_output(["cmake", "--version"])
+                out = subprocess.run(["cmake", "--version"], check=True, stdout=subprocess.PIPE).stdout
             except OSError:
                 raise RuntimeError(
                     "CMake must be installed to build the following extensions: "
@@ -83,8 +83,8 @@ class ExtensionBuilder(build_ext):
         #cmake_args += [f'-DGMP=/Users/re239/alice/sw/osx_x86-64/GMP/v6.0.0-1/']
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
-        subprocess.check_call(["cmake", ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
-        subprocess.check_call(["cmake", "--build", "."] + build_args, cwd=self.build_temp)
+        subprocess.run(["cmake", ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env, check=True)
+        subprocess.run(["cmake", "--build", "."] + build_args, cwd=self.build_temp, check=True)
 
 
 def build(setup_kwargs: Dict[str, Any]) -> None:
