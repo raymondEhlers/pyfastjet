@@ -150,12 +150,28 @@ std::shared_ptr<ak::Content> findJets(const std::shared_ptr<ak::Content> & arr, 
   ak::ArrayBuilder builder(ak::ArrayBuilderOptions(1024, 2.0));
   for (int64_t i = 0; i < arr->length(); i++) {
     auto particles = arr->getitem_at(i);
-    auto pseudoJets = getPseudoJetsFromParticles<double>(particles);
-    std::cout << pseudoJets.size() << "\n";
+    std::vector<fastjet::PseudoJet> pseudoJets;
 
-    // Perform jet finding. For now, we just pretend that the pseudoJets are the jets...
+    // Make sure that we get the right types.
+    auto npArray = std::dynamic_pointer_cast<ak::NumpyArray>(particles->getitem_field("px"));
+    auto dtype = npArray->dtype();
+    if (dtype == ak::util::dtype::float64) {
+      pseudoJets = getPseudoJetsFromParticles<double>(particles);
+    }
+    else if (dtype == ak::util::dtype::float32) {
+      pseudoJets = getPseudoJetsFromParticles<float>(particles);
+    }
+    else {
+      throw std::runtime_error("Can only handle float64");
+    }
+
+    // Perform jet finding
+    fastjet::ClusterSequenceArea cs(pseudoJets, settings.JetDefinition(), settings.AreaDefinition());
+    auto jets = fastjet::sorted_by_pt(cs.inclusive_jets(0));
+
+    // Store the resulting jets.
     builder.beginlist();
-    /*for (auto jet : jets) {
+    for (auto jet : jets) {
       builder.beginrecord_fast("LorentzVector");
       builder.field_fast("t");
       builder.real(jet.E());
@@ -166,7 +182,7 @@ std::shared_ptr<ak::Content> findJets(const std::shared_ptr<ak::Content> & arr, 
       builder.field_fast("z");
       builder.real(jet.pz());
       builder.endrecord();
-    }*/
+    }
     builder.endlist();
   }
 
@@ -466,6 +482,9 @@ PYBIND11_MODULE(_src, m) {
     ;
 
   // Awkward array
+  // Ensure dependencies are loaded.
+  py::module::import("awkward1");
+
   py::class_<JetFinderSettings>(m, "JetFinderSettings", "Encompasses jet finder settings")
     .def(py::init<const JetDefinition, const AreaDefinition>(), "jet_definition"_a, "area_definition"_a)
     .def_property("jet_definition", &JetFinderSettings::JetDefinition, &JetFinderSettings::SetJetDefinition)
