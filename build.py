@@ -75,7 +75,9 @@ class ExtensionBuilder(build_ext):
         # Grab the fastjet libraries.
         # FASTJET, CGAL, and GMP are needed. It's up to the user to set them (for now).
         # Yes, this is a huge pain...
-        cmake_args += [f'-DFASTJET={env["FASTJET_ROOT"]}']
+        # alibuild updated the fastjet path...
+        #cmake_args += [f'-DFASTJET={env["FASTJET_ROOT"]}']
+        cmake_args += [f'-DFASTJET={env["FASTJET"]}']
         cmake_args += [f'-DCGAL={env["CGAL_ROOT"]}']
         cmake_args += [f'-DGMP={env["GMP_ROOT"]}']
         #cmake_args += [f'-DGMP=/Users/re239/alice/sw/osx_x86-64/GMP/v6.0.0-1/']

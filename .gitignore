@@ -1,7 +1,8 @@
-.env
 .DS_Store
 
 # Python
+.env/
+.venv/
 __pycache__/
 .mypy_cache/
 pip-wheel-metadata/

@@ -12,12 +12,18 @@ Prerequisites:
 
 1. You need to set the environment variables:
 
-    - `FASTJET_ROOT`
+    - `FASTJET`
     - `CGAL_ROOT`
     - `GMP_ROOT`
 
     They need to be set to the install locations of the three packages. `alibuild` will set the first two.
-    However, `GMP_ROOT` unfortunately needs to be set by hand...
+    (Note that alibuild used to call it `$FASTJET_ROOT`, but now it's known as just `$FASTJET`).
+    However, `GMP_ROOT` unfortunately isn't seen as a fastjet dependency, so we have to load it explicitly.
+    For convenience with AliBuild, you can use (assuming zsh):
+
+    ```bash
+    $ alienv modulecmd zsh load fastjet/latest GMP/latest
+    ```
 
 2. Install `poetry`, and install the package via `poetry install` in the repository root directory.
 
