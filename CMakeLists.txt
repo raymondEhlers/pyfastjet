@@ -31,7 +31,6 @@ include_directories(BEFORE "${AWKWARD_INCLUDE}")
 find_library(CPU-KERNELS awkward-cpu-kernels REQUIRED HINTS ${AWKWARD_LIBRARIES})
 find_library(LIBAWKWARD awkward REQUIRED HINTS ${AWKWARD_LIBRARIES})
 
-
 message(STATUS "Fastjet libs: ${FASTJET_LIBS}, dirs: ${FASTJET_LIBS_DIR}")
 
 include_directories(SYSTEM ${FASTJET_INCLUDE_DIR})
@@ -40,6 +39,9 @@ add_definitions(${FASTJET_DEFINITIONS})
 
 add_subdirectory(pybind11)
 pybind11_add_module(_src pyfastjet/src/binding.cpp)
-target_link_libraries(_src PRIVATE ${FASTJET_LIBS} ${CPU-KERNELS} ${LIBAWKWARD})
+# The fastjet cmake module apparently will drop the gmp argument if it's static. So we need to include
+# it explicitly for the library to load successfully. There must be a better way to do this, but it works,
+# so fine for now.
+target_link_libraries(_src PRIVATE ${FASTJET_LIBS} gmp ${CPU-KERNELS} ${LIBAWKWARD})
 # For adding this as a submodule to the package
 #set_target_properties(pyfastjet PROPERTIES OUTPUT_NAME pyfastjet/binding)
