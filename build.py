@@ -90,6 +90,9 @@ class ExtensionBuilder(build_ext):
 def build(setup_kwargs: Dict[str, Any]) -> None:
     #cmake_modules = [CMakeExtension("project.package.pybind11_extension", sourcedir="project/package/pybind11_extension")]
     # 29 September 2020: Apparently setting the sourcedir, even if it's in a subdirectory, will breaks things. So don't set it!
+    # 2 October 2020 TODO: Update fully to new poetry build system with:
+    #   - https://github.com/sdispater/pendulum/pull/488/files
+    #   - https://github.com/python-poetry/poetry/issues/2740
     cmake_modules = [CMakeExtension("pyfastjet._src")]
     ext_modules = cmake_modules
     setup_kwargs.update({
