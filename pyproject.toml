@@ -7,18 +7,24 @@ authors = [
 ]
 license = "BSD-3-Clause"
 # TODO: Include the appropriate files here...
+#       I think the CMake files and the pybind11 files can both be removed.
 include = [
     "CMakeLists.txt", "cmake/FindFASTJET.cmake",
     # Include everything in the pybind11 folder.
-    "pybind11/**/*"
+    "pybind11/**/*",
     #"pybind11/*", "pybind11/include/*", "pybind11/pybind11/*", "pybind11/tools/*",
     #"pybind11/include/pybind11/*", "pybind11/include/pybind11/detail/*",
+    #"build/*/pyfastjet/*",
+    "pyfastjet/*.so",
+]
+# Exclude the bindings source files themselves, which don't need to be included.
+exclude = [
+    "pyfastjet/src/*",
 ]
 
 [tool.poetry.build]
 script = "build.py"
-# TODO: For now, we use a generated setup.py so we don't have to copy the files by hand. However, we'll do that later.
-#generate-setup-file = false
+generate-setup-file = false
 
 [tool.poetry.dependencies]
 python = "^3.6.1"
@@ -54,6 +60,7 @@ skip_glob = ".*"
 line-length = 120
 
 [build-system]
-# TODO: Remove setuptools and numpy dependencies when other issues are resolved. However, I don't think they're there yet.
-requires = ["poetry_core>=1.0.0", "setuptools", "numpy"]
+# Need awkward1 because we explicitly build against it.
+# Need setuptools because awkward uses it.
+requires = ["poetry_core>=1.0.0", "setuptools", "awkward1>=0.3",]
 build-backend = "poetry.core.masonry.api"
