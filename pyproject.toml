@@ -9,9 +9,9 @@ license = "BSD-3-Clause"
 # TODO: Include the appropriate files here...
 #       I think the CMake files and the pybind11 files can both be removed.
 include = [
-    "CMakeLists.txt", "cmake/FindFASTJET.cmake",
+    #"CMakeLists.txt", "cmake/FindFASTJET.cmake",
     # Include everything in the pybind11 folder.
-    "pybind11/**/*",
+    #"pybind11/**/*",
     #"pybind11/*", "pybind11/include/*", "pybind11/pybind11/*", "pybind11/tools/*",
     #"pybind11/include/pybind11/*", "pybind11/include/pybind11/detail/*",
     #"build/*/pyfastjet/*",
