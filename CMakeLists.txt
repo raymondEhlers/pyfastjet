@@ -28,8 +28,9 @@ find_package(FASTJET REQUIRED)
 execute_process(COMMAND python -m awkward1.config --incdir OUTPUT_VARIABLE AWKWARD_INCLUDE OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process(COMMAND python -m awkward1.config --libdir OUTPUT_VARIABLE AWKWARD_LIBRARIES OUTPUT_STRIP_TRAILING_WHITESPACE)
 include_directories(BEFORE "${AWKWARD_INCLUDE}")
-find_library(CPU-KERNELS awkward-cpu-kernels REQUIRED HINTS ${AWKWARD_LIBRARIES})
-find_library(LIBAWKWARD awkward REQUIRED HINTS ${AWKWARD_LIBRARIES})
+# Statically link to awkward. This way, we don't need to worry about updating the LD_LIBRARY_PATH.
+find_library(CPU-KERNELS awkward-cpu-kernels-static REQUIRED HINTS ${AWKWARD_LIBRARIES})
+find_library(LIBAWKWARD awkward-static REQUIRED HINTS ${AWKWARD_LIBRARIES})
 
 message(STATUS "Fastjet libs: ${FASTJET_LIBS}, dirs: ${FASTJET_LIBS_DIR}")
 
