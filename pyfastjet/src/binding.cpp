@@ -497,9 +497,9 @@ PYBIND11_MODULE(_src, m) {
       })
     ;
 
-  m.def("find_jets", &findJets, "events"_a, "settings"_a, "Find jets for the given events according to the provided settings.");
+  m.def("_find_jets", &findJets, "events"_a, "settings"_a, "Find jets for the given events according to the provided settings.");
 
-  // TODO: fastjet-contribu bindings. Look at a substructure analysis.
+  // TODO: fastjet-contrib bindings. Look at a substructure analysis.
   // Constituent subtractor
   // Recursive tools
   // Lund plane
