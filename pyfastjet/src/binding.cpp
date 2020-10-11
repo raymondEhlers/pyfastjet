@@ -140,14 +140,17 @@ std::vector<fastjet::PseudoJet> getPseudoJetsFromParticles(const std::shared_ptr
   for (int64_t i = 0; i < arrays[0].first; i++) {
     pseudoJets.emplace_back(
      fastjet::PseudoJet(arrays[0].second[i], arrays[1].second[i], arrays[2].second[i], arrays[3].second[i]));
+    // Keep track of the user index so we can match them later.
+    pseudoJets[i].set_user_index(i);
   }
 
   return pseudoJets;
 }
 
-std::shared_ptr<ak::Content> findJets(const std::shared_ptr<ak::Content> & arr, JetFinderSettings settings)
+std::tuple<std::shared_ptr<ak::Content>, std::shared_ptr<ak::Content>> findJets(const std::shared_ptr<ak::Content> & arr, JetFinderSettings settings)
 {
   ak::ArrayBuilder builder(ak::ArrayBuilderOptions(1024, 2.0));
+  ak::ArrayBuilder builderConstituents(ak::ArrayBuilderOptions(1024, 2.0));
   for (int64_t i = 0; i < arr->length(); i++) {
     auto particles = arr->getitem_at(i);
     std::vector<fastjet::PseudoJet> pseudoJets;
@@ -173,20 +176,29 @@ std::shared_ptr<ak::Content> findJets(const std::shared_ptr<ak::Content> & arr, 
     builder.beginlist();
     for (auto jet : jets) {
       builder.beginrecord_fast("LorentzVector");
-      builder.field_fast("t");
-      builder.real(jet.E());
-      builder.field_fast("x");
+      builder.field_fast("px");
       builder.real(jet.px());
-      builder.field_fast("y");
+      builder.field_fast("py");
       builder.real(jet.py());
-      builder.field_fast("z");
+      builder.field_fast("pz");
       builder.real(jet.pz());
+      builder.field_fast("E");
+      builder.real(jet.E());
       builder.endrecord();
     }
     builder.endlist();
+    builderConstituents.beginlist();
+    for (auto jet: jets) {
+        builderConstituents.beginlist();
+        for (auto constituent : jet.constituents()) {
+            builderConstituents.real(constituent.user_index());
+        }
+        builderConstituents.endlist();
+    }
+    builderConstituents.endlist();
   }
 
-  return builder.snapshot();
+  return std::make_tuple(builder.snapshot(), builderConstituents.snapshot());
 }
 
 

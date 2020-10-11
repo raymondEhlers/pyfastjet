@@ -4,6 +4,7 @@
 """
 
 import awkward1 as ak
+import numpy as np
 
 # TODO: Shift to all explicit import
 # TODO: Add in more of the bindings...
@@ -26,7 +27,14 @@ def find_jets(events: ak.Array, settings: JetFinderSettings) -> ak.Array:
     Returns:
         Jets found according to the settings.
     """
-    return ak.Array(_find_jets(events=events.layout, settings=settings))
+    _jets, _constituents = _find_jets(events=events.layout, settings=settings)
+    return ak.zip(
+        {
+            "jets": ak.Array(_jets),
+            "constituent_indices": ak.values_astype(ak.Array(_constituents), np.int32),
+        },
+        depth_limit = 1,
+    )
 
 def my_func() -> str:
     print("I'm in __init__!")
