@@ -27,11 +27,11 @@ script = "build.py"
 generate-setup-file = false
 
 [tool.poetry.dependencies]
-python = "^3.6.1"
-numpy = "^1.17.4"
-#awkward1 = {path = "../awkward-1.0"}
-#awkward1 = {path = "/alf/data/rehlers/awkward-1.0"}
-awkward1 = "^0.4"
+python = ">=3.7.1,<4.0"
+numpy = "^1.20"
+#awkward = {path = "../awkward-1.0"}
+#awkward = {path = "/alf/data/rehlers/awkward-1.0"}
+awkward = "^1.2.0rc2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.1.1"
@@ -62,14 +62,14 @@ skip_glob = ".*"
 line-length = 120
 
 [build-system]
-# Need awkward1 because we explicitly build against it.
+# Need awkward because we explicitly build against it.
 # Need setuptools because awkward uses it.
-#requires = ["poetry_core>=1.0.0", "setuptools", "awkward1>=0.3",]
-# Requiring a local repo is wayyyyyyy harder than it should be. We need awkward1 somewhere, and for the usual isolated build, it must be installed.
+#requires = ["poetry_core>=1.0.0", "setuptools", "awkward>=0.3",]
+# Requiring a local repo is wayyyyyyy harder than it should be. We need awkward somewhere, and for the usual isolated build, it must be installed.
 # non-isolated builds don't work because then we need to install poetry-core. What a mess...
-# I don't think this really works, but as long as the toml is valid, it looks like it will build... And we only need this until awkward1 is tagged
+# I don't think this really works, but as long as the toml is valid, it looks like it will build... And we only need this until awkward is tagged
 # This ends up super slow though!
-#requires = ["poetry_core>=1.0.0", "setuptools", "awkward1 @ git+https://github.com/scikit-hep/awkward-1.0.git@4f70dce"]
-#requires = ["poetry_core>=1.0.0", "setuptools", "awkward1 @ /alf/data/rehlers/awkward-1.0"]
-requires = ["poetry_core>=1.0.0", "setuptools", "awkward1>=0.4"]
+#requires = ["poetry_core>=1.0.0", "setuptools", "awkward @ git+https://github.com/scikit-hep/awkward-1.0.git@4f70dce"]
+#requires = ["poetry_core>=1.0.0", "setuptools", "awkward @ /alf/data/rehlers/awkward-1.0"]
+requires = ["poetry_core>=1.0.0", "setuptools", "awkward>=1.2.0rc2"]
 build-backend = "poetry.core.masonry.api"

@@ -24,9 +24,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 #find_package(Boost REQUIRED)
 find_package(FASTJET REQUIRED)
 
-# Setup for awkward1
-execute_process(COMMAND python -m awkward1.config --incdir OUTPUT_VARIABLE AWKWARD_INCLUDE OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND python -m awkward1.config --libdir OUTPUT_VARIABLE AWKWARD_LIBRARIES OUTPUT_STRIP_TRAILING_WHITESPACE)
+# Setup for awkward
+execute_process(COMMAND python -m awkward.config --incdir OUTPUT_VARIABLE AWKWARD_INCLUDE OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND python -m awkward.config --libdir OUTPUT_VARIABLE AWKWARD_LIBRARIES OUTPUT_STRIP_TRAILING_WHITESPACE)
 include_directories(BEFORE "${AWKWARD_INCLUDE}")
 # Statically link to awkward. This way, we don't need to worry about updating the LD_LIBRARY_PATH.
 find_library(CPU-KERNELS awkward-cpu-kernels-static REQUIRED HINTS ${AWKWARD_LIBRARIES})
@@ -43,6 +43,6 @@ pybind11_add_module(_src pyfastjet/src/binding.cpp)
 # The fastjet cmake module apparently will drop the gmp argument if it's static. So we need to include
 # it explicitly for the library to load successfully. There must be a better way to do this, but it works,
 # so fine for now.
-target_link_libraries(_src PRIVATE ${FASTJET_LIBS} gmp ${CPU-KERNELS} ${LIBAWKWARD})
+target_link_libraries(_src PRIVATE ${FASTJET_LIBS} ${CPU-KERNELS} ${LIBAWKWARD})
 # For adding this as a submodule to the package
 #set_target_properties(pyfastjet PROPERTIES OUTPUT_NAME pyfastjet/binding)

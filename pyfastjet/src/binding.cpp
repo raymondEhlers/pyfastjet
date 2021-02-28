@@ -495,7 +495,7 @@ PYBIND11_MODULE(_src, m) {
 
   // Awkward array
   // Ensure dependencies are loaded.
-  py::module::import("awkward1");
+  py::module::import("awkward");
 
   py::class_<JetFinderSettings>(m, "JetFinderSettings", "Encompasses jet finder settings")
     .def(py::init<const JetDefinition, const AreaDefinition>(), "jet_definition"_a, "area_definition"_a)
