@@ -5,12 +5,15 @@
 .. code-author:: Raymond Ehlers <raymond.ehlers@cern.ch>, ORNL
 """
 
-import pyfastjet as fj
-import pandas as pd
-import numpy as np
 from typing import List
 
+import awkward as ak
+import pandas as pd
 import pytest
+import numpy as np
+
+import pyfastjet as fj
+
 
 @pytest.mark.parametrize("list_type", [
     "list", "numpy", "pandas"
@@ -86,6 +89,22 @@ def test_fastjet(list_type: str) -> None:
         print(f"jet for cs: {jet}")
         for j, constituent in enumerate(jet.constituents):
             print(f"    constituent {j}: {constituent}")
+
+def test_find_jets() -> None:
+    particles = ak.Array({
+        "px": [[99.0, 4.0, -99.0], [0.1, -0.1, 0]],
+        "py": [[0.1, -0.1, 0], [99.0, 4.0, -99.0]],
+        "pz": [[0, 0, 0], [0, 0, 0]],
+        "E": [[100.0, 5.0, 99.0], [100.0, 5.0, 99.0]],
+    })
+
+    jet_R = 0.7
+    jet_defintion = fj.JetDefinition(fj.JetAlgorithm.antikt_algorithm, R = jet_R)
+    area_definition = fj.AreaDefinition(fj.AreaType.passive_area, fj.GhostedAreaSpec(1, 1, 0.05))
+    settings = fj.JetFinderSettings(jet_definition=jet_defintion, area_definition=area_definition)
+    jets, constituents = fj.find_jets(events=particles, settings=settings)
+
+    assert False
 
 if __name__ == "__main__":
     test_fastjet()
