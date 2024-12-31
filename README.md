@@ -1,6 +1,6 @@
 # Python Fastjet Bindings
 
-**NOTE: This was initial development work that was later in moved into other packages. For current options, see [scikit-hep/fastjet](https://github.com/scikit-hep/fastjet), or for my full analysis framework including jet finding, see [raymondEhlers/mammoth](https://github.com/raymondEhlers/mammoth).
+**NOTE**: This was initial development work that was later in moved into other packages. For current options, see [scikit-hep/fastjet](https://github.com/scikit-hep/fastjet), or for my full analysis framework including jet finding, see [raymondEhlers/mammoth](https://github.com/raymondEhlers/mammoth).
 
 Python bindings for fastjet. fastjet-contrib is not yet supported, but could be added depending on demand.
 
